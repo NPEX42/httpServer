@@ -1,5 +1,5 @@
 {
 	"static": "./static",
 	"landing": "./static/index.html",
-	"404": "./static/404.html"
+	"port": 80
 }

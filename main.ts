@@ -1,6 +1,6 @@
 import paths from "./paths.json" assert { type: "json" };
 import secret from "./env.json" assert { type: "json" };
-import { serveDir, serveFile, serve, copy } from "./deps.ts";
+import { serveDir, serveFile, serve } from "./deps.ts";
 
 const port = paths.port;
 

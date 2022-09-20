@@ -2,3 +2,4 @@ testInput/**
 env.json
 static/Test_**.html
 log.txt
+tools/**

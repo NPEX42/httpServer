@@ -1,6 +1,0 @@
-{
-	"static": "./static",
-	"landing": "./static/index.html",
-	"port": 443,
-	"hostname": "npex42.dev"
-}

@@ -1,0 +1,7 @@
+{
+    "port": 443,
+    "insecurePort": 80,
+    "hostname": "npex42.dev",
+    "useSecure": false,
+    "certDir": "/etc/letsencrypt/live/npex42.dev/" 
+}

@@ -1,9 +1,9 @@
 import paths from "./paths.json" assert { type: "json" };
 import secret from "./env.json" assert { type: "json" };
-import { serveDir, serveFile, serve } from "./deps.ts";
+import { serveDir, serveFile, serveTls } from "./deps.ts";
 
 const port = paths.port;
-
+const hostname = paths.hostname || "127.0.0.1";
 const handler = async (req: Request) => {
 
   const pathname = new URL(req.url).pathname;
@@ -33,7 +33,7 @@ const handler = async (req: Request) => {
 
 
 
-serve(handler, { port });
+serveTls(handler, { port, hostname, certFile: "/etc/letsencrypt/live/npex42.dev/fullchain.pem", keyFile: "/etc/letsencrypt/live/npex42.dev/privkey.pem" });
 
 async function delete_file(req: Request) : Promise<Response> {
     const body = await req.json();

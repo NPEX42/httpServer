@@ -1,5 +1,5 @@
 {
 	"static": "./static",
-	"landing": "./static/index.html"
-
+	"landing": "./static/index.html",
+	"protected_dirs": []
 }

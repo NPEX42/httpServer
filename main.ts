@@ -1,7 +1,8 @@
 import paths from "./config/paths.json" assert { type: "json" };
 import host from "./config/host.json" assert { type: "json" };
 import secret from "./config/env.json" assert { type: "json" };
-import { serveDir, serveFile, serveTls, printf, serve } from "./deps.ts";
+import { serveDir, serveFile, serveTls, printf, serve, decode } from "./deps.ts";
+import * as path from "https://deno.land/std@0.156.0/path/mod.ts"
 
 const HTTP_EC_UNAUTH = 401;
 const HTTP_EC_NOT_FOUND = 404;
@@ -14,14 +15,14 @@ const handler = async (req: Request) => {
 
   const pathname = new URL(req.url).pathname;
 
-  printf("[REQ] %s - %s\n", req.method, pathname);
+  logRequest(req);
 
   if (req.method == "DELETE") {
       return await delete_file(req);
   }
 
   if (req.method == "POST") {
-    return await post_file(req);
+    return await create_file(req);
   }
 
   if (req.method == "PUT") {
@@ -51,14 +52,26 @@ if (host.useSecure ?? true) {
   console.log("%cStarting HTTP Server...", "color: blue");
   serve(handler, {port: 80});
 }
+
 async function delete_file(req: Request) : Promise<Response> {
     const body = await req.json();
+    const pathname = new URL(req.url).pathname;
+    const dirs = path.dirname(pathname);
+    const ext = path.extname(pathname);
+    const filepath = paths.static + "/" + pathname;
     try {
       if (body.secret_key !== secret.secret) {
 
         return Promise.resolve(FailedResponse(HTTP_EC_UNAUTH, "Invalid Secret"));
       }
-      Deno.removeSync(paths.static+"/"+body.filepath);
+
+      if (dirs != "" && ext == "") {
+        Deno.remove(paths.static+(ext == "" ? pathname : dirs), {recursive: true});
+        console.debug("Deleted Dir '"+pathname);
+      }
+
+      if (ext != "") 
+        Deno.removeSync(filepath);
     } catch (err) {
 
       console.error("Exception: ", err);
@@ -70,19 +83,30 @@ async function delete_file(req: Request) : Promise<Response> {
 }
 
 
-async function post_file(req: Request) : Promise<Response> {
+async function create_file(req: Request) : Promise<Response> {
   const body = await req.json();
   const contents = body.contents;
+  const pathname = new URL(req.url).pathname;
+  const dirs = path.dirname(pathname);
+  const ext = path.extname(pathname);
+  const filepath = paths.static + "/" + pathname;
+
+
   try {
     if (body.secret_key !== secret.secret) {
 
       return Promise.reject("Invalid Secret");
     }
 
-    
+    try  { 
+      if (dirs != "") {
+        Deno.mkdirSync(paths.static+(ext == "" ? pathname : dirs), {recursive: true} );
+        console.debug("Created New Dir");
+      }
+    } catch (e) { console.error("Failed To Create Dirs", e) }
 
-    const encoder = new TextEncoder();
-    Deno.writeFileSync(paths.static+"/"+body.filepath, encoder.encode(contents));
+    if (path.extname(pathname) != "") 
+      Deno.writeFileSync(filepath, getFileContentsBase64(contents));
   } catch (err) {
 
     console.error("Exception: ", err);
@@ -94,18 +118,17 @@ async function post_file(req: Request) : Promise<Response> {
 
 
 async function update_file(req: Request) : Promise<Response> {
+  const pathname = new URL(req.url).pathname;
   const body = await req.json();
   const contents = body.contents;
-  const path = paths.static+"/"+body.filepath;
+  const path = paths.static + pathname;
   try {
     if (body.secret_key !== secret.secret) {
 
       return Promise.resolve(Response.json({ok: false}, {status: HTTP_EC_UNAUTH, statusText: "Failed To Update File '"+body.filepath+"'"}));
     }
-    
-    console.debug("[PUT] IP: ", req.headers.get("Origin") ?? "<unknown>", " - ", path);
     const encoder = new TextEncoder();
-    Deno.writeFileSync(path, encoder.encode(contents), {create: false});
+    Deno.writeFileSync(path, getFileContentsBase64(contents), {create: false});
   } catch (_err) {
 
     console.error("failed To Update File: ", path);
@@ -121,4 +144,14 @@ function FailedResponse(ec: number, text?: string | undefined) : Response {
 
 function SuccessResponse(code: number, text?: string | undefined) : Response {
   return Response.json({ ok: true },{ status: HTTP_EC_OK, statusText: text ?? "Success("+code+")" });
+}
+
+function getFileContentsBase64(contents: string) : Uint8Array {
+    return decode(contents);
+}
+
+function logRequest(req: Request) {
+
+  const url = new URL(req.url);
+  console.log("%c["+req.method+"]: "+(req.headers.get("Origin") ?? "<unknown>")+" | "+url+" Path: "+url.pathname, "color: blue");
 }

@@ -1,7 +1,7 @@
 import paths from "./config/paths.json" assert { type: "json" };
 import host from "./config/host.json" assert { type: "json" };
 import secret from "./config/env.json" assert { type: "json" };
-import { serveDir, serveFile, serveTls, printf, serve, decode } from "./deps.ts";
+import { serveDir, serveFile, serveTls, serve, decode } from "./deps.ts";
 import * as path from "https://deno.land/std@0.156.0/path/mod.ts"
 
 const HTTP_EC_UNAUTH = 401;
@@ -44,13 +44,17 @@ const handler = async (req: Request) => {
   return new Response();
 };
 
+const envType = host.EnvType ?? "secure";
 
-if (host.useSecure ?? true) {
-  console.log("%cStarting HTTPS Server...\n CertDirectory: ","color: blue" , host.certDir);
-  serveTls(handler, { port: 443, hostname, certFile: host.certDir+"fullchain.pem", keyFile: host.certDir+"privkey.pem" });
-} else {
+if ((envType.toLowerCase() == "secure")) {
+  console.log("%cStarting HTTPS Server...","color: yellow");
+  serveTls(handler, { port: host.port, hostname, certFile: host.certDir+"fullchain.pem", keyFile: host.certDir+"privkey.pem" });
+} else if (envType.toLowerCase() == "insecure") {
   console.log("%cStarting HTTP Server...", "color: blue");
-  serve(handler, {port: 80});
+  serve(handler, {port: host.insecurePort});
+} else if (envType.toLowerCase() == "dev") {
+  console.log("%cStarting DEV Server...", "color: blue");
+  serve(handler, {port: host.devPort});
 }
 
 async function delete_file(req: Request) : Promise<Response> {
@@ -127,7 +131,6 @@ async function update_file(req: Request) : Promise<Response> {
 
       return Promise.resolve(Response.json({ok: false}, {status: HTTP_EC_UNAUTH, statusText: "Failed To Update File '"+body.filepath+"'"}));
     }
-    const encoder = new TextEncoder();
     Deno.writeFileSync(path, getFileContentsBase64(contents), {create: false});
   } catch (_err) {
 

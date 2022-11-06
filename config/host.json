@@ -1,7 +1,10 @@
 {
     "port": 443,
     "insecurePort": 80,
+    "devPort": 8888,
+    "isDevEnvironment": true,
     "hostname": "npex42.dev",
-    "useSecure": true,
+    "useSecure": false,
+    "EnvType": "Dev",
     "certDir": "/etc/letsencrypt/live/npex42.dev/" 
 }

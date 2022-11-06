@@ -2,6 +2,6 @@
     "port": 443,
     "insecurePort": 80,
     "hostname": "npex42.dev",
-    "useSecure": false,
+    "useSecure": true,
     "certDir": "/etc/letsencrypt/live/npex42.dev/" 
 }

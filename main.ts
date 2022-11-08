@@ -2,16 +2,28 @@ import paths from "./config/paths.json" assert { type: "json" };
 import host from "./config/host.json" assert { type: "json" };
 import secret from "./config/env.json" assert { type: "json" };
 import { serveDir, serveFile, serveTls, serve, decode } from "./deps.ts";
-import * as path from "https://deno.land/std@0.156.0/path/mod.ts"
+import * as path from "https://deno.land/std@0.162.0/path/mod.ts"
+import { Router } from "./src/router.ts";
+
+import * as indexRoute from "./src/routes/index.ts";
 
 const HTTP_EC_UNAUTH = 401;
 const HTTP_EC_NOT_FOUND = 404;
 const HTTP_EC_OK = 200;
 
 
+// deno-lint-ignore no-unused-vars
 const port = host.port;
 const hostname = host.hostname || "127.0.0.1";
+
+const router = new Router();
+
+router.SetEndpoint("/test", {get: TestRoute});
+router.SetEndpoint("/", indexRoute.ENDPOINT);
+
 const handler = async (req: Request) => {
+
+  return Promise.resolve(router.Route(req));
 
   const pathname = new URL(req.url).pathname;
 
@@ -157,4 +169,10 @@ function logRequest(req: Request) {
 
   const url = new URL(req.url);
   console.log("%c["+req.method+"]: "+(req.headers.get("Origin") ?? "<unknown>")+" | "+url+" Path: "+url.pathname, "color: blue");
+}
+
+
+
+function TestRoute(req: Request) : Response {
+    return new Response("Hello, Fucker", {status: 200});
 }

@@ -1,5 +1,6 @@
 {
 	"static": "./static",
 	"landing": "./static/index.html",
-	"protected_dirs": []
+	"protected_dirs": [],
+	"error_path": "./static/error"
 }

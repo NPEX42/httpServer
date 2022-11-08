@@ -21,6 +21,8 @@ const router = new Router();
 router.SetEndpoint("/test", {get: TestRoute});
 router.SetEndpoint("/", indexRoute.ENDPOINT);
 
+router.SetDefaultEndpoint(indexRoute.ENDPOINT);
+
 const handler = async (req: Request) => {
 
   return Promise.resolve(router.Route(req));
@@ -59,13 +61,13 @@ const handler = async (req: Request) => {
 const envType = host.EnvType ?? "secure";
 
 if ((envType.toLowerCase() == "secure")) {
-  console.log("%cStarting HTTPS Server...","color: yellow");
+  console.debug("%cStarting HTTPS Server...","color: yellow");
   serveTls(handler, { port: host.httpsPort, hostname, certFile: host.certDir+"fullchain.pem", keyFile: host.certDir+"privkey.pem" });
 } else if (envType.toLowerCase() == "insecure") {
-  console.log("%cStarting HTTP Server...", "color: blue");
+  console.debug("%cStarting HTTP Server...", "color: blue");
   serve(handler, {port: host.httpPort});
 } else if (envType.toLowerCase() == "dev") {
-  console.log("%cStarting DEV Server...", "color: blue");
+  console.debug("%cStarting DEV Server...", "color: blue");
   serve(handler, {port: host.devPort});
 }
 

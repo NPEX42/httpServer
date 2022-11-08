@@ -13,7 +13,7 @@ const HTTP_EC_OK = 200;
 
 
 // deno-lint-ignore no-unused-vars
-const port = host.port;
+const port = host.httpPort;
 const hostname = host.hostname || "127.0.0.1";
 
 const router = new Router();
@@ -60,10 +60,10 @@ const envType = host.EnvType ?? "secure";
 
 if ((envType.toLowerCase() == "secure")) {
   console.log("%cStarting HTTPS Server...","color: yellow");
-  serveTls(handler, { port: host.port, hostname, certFile: host.certDir+"fullchain.pem", keyFile: host.certDir+"privkey.pem" });
+  serveTls(handler, { port: host.httpsPort, hostname, certFile: host.certDir+"fullchain.pem", keyFile: host.certDir+"privkey.pem" });
 } else if (envType.toLowerCase() == "insecure") {
   console.log("%cStarting HTTP Server...", "color: blue");
-  serve(handler, {port: host.insecurePort});
+  serve(handler, {port: host.httpPort});
 } else if (envType.toLowerCase() == "dev") {
   console.log("%cStarting DEV Server...", "color: blue");
   serve(handler, {port: host.devPort});
